@@ -1,0 +1,32 @@
+clinic-booking/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config.py
+│   ├── database.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   └── appointments.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── appointments.py
+│   └── routes/
+│       ├── __init__.py
+│       ├── availability.py
+│       └── appointments.py
+├── database/
+│   ├── schema.sql
+│   └── procedures.sql
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_availability.py
+│   └── test_appointments.py
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── README.md
+└── .python-version

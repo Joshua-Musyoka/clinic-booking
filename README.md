@@ -1,141 +1,186 @@
-# Clinic Booking System
+cat > README.md <<'EOF'
 
-A REST API for managing appointments at a small clinic.
+# Savannah Clinic Booking API
 
-The system allows patients to view available 30-minute appointment
-slots, book appointments, cancel bookings, and reschedule appointments.
+A REST API for managing patient appointments at a small clinic. The system
+allows patients to check doctor availability, book appointments, cancel
+appointments, reschedule existing bookings, and retrieve appointment history.
 
-## 1. System Design
+The project is being developed as part of a software engineering assessment,
+with an emphasis on correctness, data integrity, concurrency safety, automated
+testing, and straightforward deployment.
 
-### Architecture
+## 1. Technology Stack
 
-The application uses a modular monolith built with FastAPI and
-PostgreSQL.
+| Component                       | Technology              |
+| ------------------------------- | ----------------------- |
+| Programming language            | Python 3.12             |
+| API framework                   | FastAPI                 |
+| Request and response validation | Pydantic                |
+| Database                        | MySQL 8.0+              |
+| Python database driver          | PyMySQL                 |
+| Database business operations    | MySQL stored procedures |
+| Automated testing               | Pytest and HTTPX        |
+| CI/CD                           | GitHub Actions          |
+| Version control                 | Git and GitHub          |
 
-The API layer handles HTTP requests, validation, and responses.
-The service layer implements booking rules.
-The data-access layer manages database operations.
+The application will use direct database connections through PyMySQL.
+SQLAlchemy, ORM models, and Alembic are not part of the intended architecture.
 
-The application is containerized with Docker and deployed to Render.
-GitHub Actions runs automated checks and manages deployment.
+## 2. Requirements and Business Rules
 
-### Technology Stack
+The clinic has five doctors. Each doctor has defined working hours, and
+appointments are scheduled in 30-minute slots.
 
-- Python
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic
-- Pytest
-- Docker
-- GitHub Actions
-- Render
+The system must enforce the following rules:
 
-### Data Models
+1. Patients can retrieve available appointment slots for a doctor on a given
+   date.
+2. Appointments must fall within the doctor's configured working hours.
+3. Appointments cannot be booked in the past.
+4. Appointments must start at least 60 minutes after the current time.
+5. An appointment slot cannot be booked by multiple patients.
+6. Cancelling an appointment must make its slot available again.
+7. An appointment cannot be cancelled more than once.
+8. Rescheduling must validate the new slot using the same rules as booking.
+9. Rescheduling must release the original slot when the operation succeeds.
+10. Cancelled appointments cannot be rescheduled.
+11. Patient appointment history must be ordered chronologically, with upcoming
+    appointments returned first where applicable.
+12. Database transactions and appropriate locking must protect against
+    concurrent booking attempts.
 
-Doctor:
+The clinic's configured timezone is `Africa/Nairobi`. API timestamps must
+include timezone information where required. The application will normalize
+timestamps consistently before storing or comparing them in MySQL.
 
-- id
-- full_name
-- specialty
-- is_active
-- created_at
+## 3. API Endpoints
 
-Patient:
+The following endpoints define the intended API contract.
 
-- id
-- full_name
-- email
-- phone
-- created_at
+### Check doctor availability
 
-DoctorWorkingHours:
+`GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
 
-- id
-- doctor_id
-- weekday
-- start_time
-- end_time
-- is_active
+Returns the available 30-minute appointment slots for the specified doctor
+on the requested date.
 
-Appointment:
+Expected behaviour:
 
-- id
-- patient_id
-- doctor_id
-- start_time
-- end_time
-- status
-- cancellation_reason
-- created_at
-- updated_at
+- Validate the doctor and requested date.
+- Respect the doctor's working hours.
+- Exclude slots that have already been booked.
+- Exclude slots that violate the booking notice requirement.
+- Return a meaningful error when the doctor does not exist.
 
-### Booking Rules
+### Book an appointment
 
-1. Appointments last exactly 30 minutes.
-2. Appointments must fall within the doctor's working hours.
-3. Appointments must not be in the past.
-4. Bookings within one hour of the current time are rejected.
-5. A doctor cannot have overlapping active appointments.
-6. Cancelled appointments release their slots.
-7. Cancellation requires a reason.
-8. Already-cancelled appointments cannot be cancelled again.
-9. Cancelled appointments cannot be rescheduled.
-10. Rescheduling validates the new slot using the same rules
-    as a new booking.
-11. Upcoming patient appointments are returned in chronological order.
+`POST /appointments`
 
-### Key Design Decisions
+Creates a new appointment after validating the patient, doctor, working
+hours, booking notice, and slot availability.
 
-- PostgreSQL provides transactions and database-level protection
-  against conflicting appointments.
-- FastAPI provides request validation and generated API documentation.
-- A modular monolith keeps the initial system simple to develop
-  and deploy.
-- Working hours are stored separately from doctors to support
-  different schedules.
-- Timestamps are stored in UTC, with clinic-local dates and times
-  interpreted using an explicit timezone.
-- Appointment cancellation changes the appointment status rather
-  than deleting the record, preserving an audit trail.
-- Database migrations are version-controlled.
+Expected behaviour:
 
-### Trade-offs
+- Return `201 Created` when the appointment is successfully created.
+- Reject invalid appointment requests.
+- Reject attempts to book an occupied slot.
+- Protect against simultaneous requests attempting to book the same slot.
 
-A modular monolith is simpler to deploy than microservices and is
-appropriate for the initial scale.
+### Cancel an appointment
 
-PostgreSQL-specific constraints reduce portability but provide
-stronger protection against concurrent booking requests.
+`PATCH /appointments/{appointment_id}/cancel`
 
-The initial working-hours model supports recurring weekly schedules.
-Exceptions such as holidays, doctor leave, and temporary closures
-can be introduced as the system grows.
+Cancels an existing appointment and records the cancellation reason.
 
-### Assumptions
+Expected behaviour:
 
-- The clinic operates in the Africa/Nairobi timezone.
-- Appointment durations are fixed at 30 minutes.
-- Each doctor has a configurable weekly working schedule.
-- Patients are identified by a patient ID supplied to the API.
-- The initial version supports one clinic location.
-- Cancelled appointments remain in the database for traceability.
+- Return a successful response when cancellation completes.
+- Reject attempts to cancel an appointment that is already cancelled.
+- Return an appropriate error when the appointment does not exist.
+- Make the appointment's slot available again.
 
-## 2. Local Development
+### Reschedule an appointment
 
-Instructions will be added after the application implementation
-and database configuration are complete.
+`PATCH /appointments/{appointment_id}/reschedule`
 
-## 3. API Documentation
+Moves an existing appointment to a new valid slot.
 
-FastAPI provides interactive documentation at `/docs`.
+Expected behaviour:
 
-## 4. Deployment and CI/CD
+- Reject appointments that have already been cancelled.
+- Validate the new slot against the doctor's working hours and booking rules.
+- Reject occupied slots.
+- Release the original slot when rescheduling succeeds.
+- Perform the operation transactionally so a failed reschedule does not
+  leave the appointment in an inconsistent state.
 
-Deployment instructions, the public application URL, and the
-GitHub Actions workflow will be documented after deployment.
+### Retrieve patient appointment history
 
-## 5. AI Reflection
+`GET /patients/{patient_id}/appointments`
 
-The assessment's AI reflection will be completed after development,
-based on the actual work performed and decisions made.
+Returns the appointments associated with a patient, ordered by appointment
+date and time.
+
+This is a bonus endpoint for the assessment.
+
+## 4. Architecture and Design Decisions
+
+### FastAPI and Pydantic
+
+FastAPI provides the HTTP API and automatic OpenAPI documentation.
+Pydantic validates incoming requests and structures outgoing responses.
+
+### MySQL and stored procedures
+
+MySQL stores doctors, patients, working hours, and appointments.
+
+Stored procedures centralize important database operations, including
+availability checks, booking, cancellation, rescheduling, and patient
+appointment history.
+
+This approach is intended to keep database operations consistent while
+using the database technology with which the developer is most familiar.
+
+### Concurrency and data integrity
+
+Application-level availability checks alone are insufficient to prevent
+double booking: two requests could observe the same slot as available.
+
+Booking and rescheduling operations will therefore use database transactions
+and appropriate row-level locking. Operations will acquire locks in a
+consistent order, validate the slot while holding the required locks, and
+commit only after all checks succeed.
+
+Database permissions will also be considered so application users cannot
+bypass the intended booking operations through unrestricted direct writes.
+
+### Separation of responsibilities
+
+The intended application structure separates:
+
+- Routes: HTTP methods, paths, and response handling.
+- Schemas: Request and response validation.
+- Services: Application-level orchestration and error mapping.
+- Database helper: MySQL connection management and stored procedure calls.
+- Stored procedures: Transactional database operations and business rules.
+
+The implementation will remain deliberately small to avoid unnecessary
+abstraction for a focused assessment project.
+
+## 5. Local Development Setup
+
+### Prerequisites
+
+Install or provide:
+
+- Python 3.12
+- MySQL 8.0 or a compatible MySQL server
+- Git
+
+### Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd clinic-booking
+```

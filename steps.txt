@@ -1,0 +1,28 @@
+Phase 1 — Database connection
+1. Confirm the MySQL connection works.
+2. Update requirements.txt to remove SQLAlchemy-related dependencies that are no longer needed.
+3. Update app/config.py.
+4. Replace app/database.py with the PyMySQL connection helper.
+5. Verify Python can query MySQL.
+Phase 2 — Database
+6. Finalize database/schema.sql.
+7. Create database/procedures.sql.
+8. Create the availability procedure.
+9. Create the booking procedure.
+10. Create the cancellation procedure.
+11. Create the rescheduling procedure.
+12. Create the patient appointment history procedure.
+13. Test the procedures directly in MySQL.
+Phase 3 — API
+14. Create the Pydantic schemas.
+15. Implement the availability endpoint.
+16. Implement booking.
+17. Implement cancellation.
+18. Implement rescheduling.
+19. Implement the bonus endpoint.
+Phase 4 — Testing and delivery
+20. Test success cases and business-rule violations.
+21. Test concurrent booking attempts.
+22. Configure GitHub Actions.
+23. Deploy the API and database.
+24. Update the README and complete the AI reflection.
