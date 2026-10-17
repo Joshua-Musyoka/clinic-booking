@@ -30,3 +30,6 @@ htmlcov/
 
 # Restful API testing files
 send.http
+
+# steps to followed to develop the project
+steps.txt

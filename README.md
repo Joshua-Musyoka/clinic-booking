@@ -53,7 +53,7 @@ timestamps consistently before storing or comparing them in MySQL.
 
 ## 3. API Endpoints
 
-The following endpoints define the intended API contract.
+The following endpoints define the intended API contract
 
 ### Check doctor availability
 
@@ -178,6 +178,6 @@ Install or provide:
 ### Clone the repository
 
 ```bash
-git clone https://github.com/joshuathedevop/clinic-booking.git
+git clone https://github.com/Joshua-Musyoka/clinic-booking.git
 cd clinic-booking
 ```
