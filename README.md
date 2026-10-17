@@ -1,5 +1,3 @@
-cat > README.md <<'EOF'
-
 # Savannah Clinic Booking API
 
 A REST API for managing patient appointments at a small clinic. The system
@@ -25,7 +23,6 @@ testing, and straightforward deployment.
 | Version control                 | Git and GitHub          |
 
 The application will use direct database connections through PyMySQL.
-SQLAlchemy, ORM models, and Alembic are not part of the intended architecture.
 
 ## 2. Requirements and Business Rules
 
@@ -181,6 +178,6 @@ Install or provide:
 ### Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone https://github.com/joshuathedevop/clinic-booking.git
 cd clinic-booking
 ```
