@@ -16,6 +16,17 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
+            - name: Configure SSH host verification
+              env:
+                  DO_KNOWN_HOSTS: ${{ secrets.DO_KNOWN_HOSTS }}
+              run: |
+                  mkdir -p ~/.ssh
+                  chmod 700 ~/.ssh
+
+                  printf '%s\n' "$DO_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+                  chmod 600 ~/.ssh/known_hosts
+
             - name: Deploy to DigitalOcean
               env:
                   DO_HOST: ${{ secrets.DO_HOST }}
