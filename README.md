@@ -55,6 +55,8 @@ timestamps consistently before storing or comparing them in MySQL.
 
 The following endpoints define the intended API contract
 
+Base url is http://174.138.14.183/api/v1/
+
 ### Check doctor availability
 
 `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
