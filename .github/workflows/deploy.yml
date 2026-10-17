@@ -16,15 +16,21 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Configure SSH host verification
+            - name: Configure SSH authentication
               env:
-                  DO_KNOWN_HOSTS: ${{ secrets.DO_KNOWN_HOSTS }}
+                  DO_SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
               run: |
                   mkdir -p ~/.ssh
                   chmod 700 ~/.ssh
 
-                  printf '%s\n' "$DO_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                  printf '%s\n' "$DO_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
 
+            - name: Configure SSH host verification
+              env:
+                  DO_KNOWN_HOSTS: ${{ secrets.DO_KNOWN_HOSTS }}
+              run: |
+                  printf '%s\n' "$DO_KNOWN_HOSTS" > ~/.ssh/known_hosts
                   chmod 600 ~/.ssh/known_hosts
 
             - name: Deploy to DigitalOcean
