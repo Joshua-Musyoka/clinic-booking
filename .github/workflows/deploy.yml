@@ -41,7 +41,7 @@ jobs:
               run: |
                   set -e
 
-                  rsync -az \
+                  rsync -rz \
                     --exclude='.git/' \
                     --exclude='.venv/' \
                     --exclude='.env' \
