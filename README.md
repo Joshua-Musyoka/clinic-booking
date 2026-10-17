@@ -53,7 +53,7 @@ timestamps consistently before storing or comparing them in MySQL.
 
 ## 3. API Endpoints
 
-The following endpoints define the intended API contract.
+The following endpoints define the intended API contract
 
 ### Check doctor availability
 
