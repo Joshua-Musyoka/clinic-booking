@@ -415,4 +415,4 @@ Before using it with real patient data:
 - Configure backups and test restoration.
 - Test transaction rollback and simultaneous booking attempts against
   the target database.
-- Restrict operational and administrative endpoints.
+- Restrict operational and administrative endpoints
