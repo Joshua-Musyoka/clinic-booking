@@ -15,25 +15,25 @@ database operations are implemented in stored procedures.
 
 ## Requirements
 
--   Python 3.12
--   MariaDB 10.6+ or a compatible MySQL server
--   Git
--   A database account with permission to create/use the application
-    schema and install stored procedures
--   `curl` (optional, for command-line API testing)
+- Python 3.12
+- MariaDB 10.6+ or a compatible MySQL server
+- Git
+- A database account with permission to create/use the application
+  schema and install stored procedures
+- `curl` (optional, for command-line API testing)
 
 ## Installation and local setup
 
 ### 1. Clone the repository
 
-``` bash
+```bash
 git clone https://github.com/Joshua-Musyoka/clinic-booking.git
 cd clinic-booking
 ```
 
 ### 2. Create a virtual environment and install dependencies
 
-``` bash
+```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -46,7 +46,7 @@ Create the application database and user in MariaDB/MySQL, then apply
 the repository SQL scripts. For example, if the scripts are named as
 shown below:
 
-``` bash
+```bash
 mysql -u root -p -e "CREATE DATABASE savanaclinic_booking;"
 mysql -u root -p savanaclinic_booking < database/schema.sql
 mysql -u root -p savanaclinic_booking < database/procedures.sql
@@ -60,7 +60,7 @@ for the current schema and stored procedure definitions.
 
 Create a `.env` file in the project root:
 
-``` dotenv
+```dotenv
 APP_NAME="Savannah Clinic Booking API"
 APP_ENV=development
 MYSQL_HOST=127.0.0.1
@@ -77,15 +77,15 @@ production secrets to Git.
 
 ### 5. Start the API
 
-``` bash
+```bash
 uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
 Open the interactive API documentation:
 
--   Swagger UI: <http://127.0.0.1:8001/docs>
--   OpenAPI schema: <http://127.0.0.1:8001/openapi.json>
--   Health check: <http://127.0.0.1:8001/health>
+- Swagger UI: <http://127.0.0.1:8001/docs>
+- OpenAPI schema: <http://127.0.0.1:8001/openapi.json>
+- Health check: <http://127.0.0.1:8001/health>
 
 The health route may be configured outside the `/api/v1` prefix.
 
@@ -93,14 +93,14 @@ The health route may be configured outside the `/api/v1` prefix.
 
 In a second terminal, activate the virtual environment and run:
 
-``` bash
+```bash
 source .venv/bin/activate
 pytest -q
 ```
 
 For verbose output:
 
-``` bash
+```bash
 pytest -v
 ```
 
@@ -109,68 +109,74 @@ Never run destructive tests against production data.
 
 ## Live API
 
--   **Base URL:** <http://174.138.14.183/api/v1/>
--   **Swagger UI:** <http://174.138.14.183/docs>
--   **OpenAPI schema:** <http://174.138.14.183/openapi.json>
--   **Health check:** <http://174.138.14.183/health>
+- **Base URL:** <http://174.138.14.183/api/v1/>
+- **Swagger UI:** <http://174.138.14.183/docs>
+- **OpenAPI schema:** <http://174.138.14.183/openapi.json>
+- **Health check:** <http://174.138.14.183/health>
 
 The deployed assessment API currently uses HTTP. Treat it as a demo
 environment only and do not send real patient data.
 
 ## Features
 
--   Retrieve a doctor's available 30-minute slots for a date.
--   Book appointments with patient, doctor, working-hours,
-    notice-period, and conflict checks.
--   Cancel appointments with a recorded reason.
--   Reschedule an appointment to an eligible, unoccupied slot.
--   Retrieve a single appointment and a patient's appointment history.
--   Validate request payloads with Pydantic.
--   Use stored procedures for core database operations.
--   Return meaningful HTTP errors for common business-rule failures.
--   Publish interactive API documentation through FastAPI's OpenAPI
-    integration.
--   Run automated tests with Pytest and FastAPI's test client.
+- Retrieve a doctor's available 30-minute slots for a date.
+- Book appointments with patient, doctor, working-hours,
+  notice-period, and conflict checks.
+- Cancel appointments with a recorded reason.
+- Reschedule an appointment to an eligible, unoccupied slot.
+- Retrieve a single appointment and a patient's appointment history.
+- Validate request payloads with Pydantic.
+- Use stored procedures for core database operations.
+- Return meaningful HTTP errors for common business-rule failures.
+- Publish interactive API documentation through FastAPI's OpenAPI
+  integration.
+- Run automated tests with Pytest and FastAPI's test client.
 
 ## Technology stack
 
-  Area                   Technology
-  ---------------------- -----------------------------------
-  Language               Python 3.12
-  API framework          FastAPI
-  Validation             Pydantic
-  Database               MariaDB / MySQL
-  Database access        PyMySQL
-  Core data operations   Stored procedures
-  ASGI server            Uvicorn
-  Tests                  Pytest, HTTPX, FastAPI TestClient
-  Deployment             DigitalOcean, Nginx, systemd
-  CI/CD                  GitHub Actions
+Area Technology
+
+---
+
+Language Python 3.12
+API framework FastAPI
+Validation Pydantic
+Database MariaDB / MySQL
+Database access PyMySQL
+Core data operations Stored procedures
+ASGI server Uvicorn
+Tests Pytest, HTTPX, FastAPI TestClient
+Deployment DigitalOcean, Nginx, systemd
+CI/CD GitHub Actions
 
 ## API endpoints
 
 All endpoints below are relative to `/api/v1`.
 
-  -----------------------------------------------------------------------------------------------------
-  Method                  Endpoint                                              Purpose
-  ----------------------- ----------------------------------------------------- -----------------------
-  `GET`                   `/doctors/{doctor_id}/availability?date=YYYY-MM-DD`   List available
-                                                                                30-minute slots for a
-                                                                                doctor
+---
 
-  `POST`                  `/appointments`                                       Book an appointment
+Method Endpoint Purpose
 
-  `GET`                   `/appointments/{appointment_id}`                      Retrieve one
-                                                                                appointment
+---
 
-  `PATCH`                 `/appointments/{appointment_id}/cancel`               Cancel an appointment
+`GET` `/doctors/{doctor_id}/availability?date=YYYY-MM-DD` List available
+30-minute slots for a
+doctor
 
-  `PATCH`                 `/appointments/{appointment_id}/reschedule`           Reschedule an
-                                                                                appointment
+`POST` `/appointments` Book an appointment
 
-  `GET`                   `/patients/{patient_id}/appointments`                 Retrieve a patient's
-                                                                                appointment history
-  -----------------------------------------------------------------------------------------------------
+`GET` `/appointments/{appointment_id}` Retrieve one
+appointment
+
+`PATCH` `/appointments/{appointment_id}/cancel` Cancel an appointment
+
+`PATCH` `/appointments/{appointment_id}/reschedule` Reschedule an
+appointment
+
+`GET` `/patients/{patient_id}/appointments` Retrieve a patient's
+appointment history
+
+---
 
 Use `/docs` to confirm the live request schemas and response codes; the
 documentation is generated from the running application.
@@ -185,11 +191,11 @@ the API are presented in Nairobi local time.
 
 Example input:
 
-``` json
+```json
 {
-  "patient_id": 1,
-  "doctor_id": 1,
-  "start_at": "2026-10-22 10:00:00"
+    "patient_id": 1,
+    "doctor_id": 1,
+    "start_at": "2026-10-22 10:00:00"
 }
 ```
 
@@ -199,7 +205,7 @@ period, the doctor's working hours, slot alignment, and availability.
 
 ### Check doctor availability
 
-``` bash
+```bash
 curl -i \
   "http://127.0.0.1:8001/api/v1/doctors/1/availability?date=2026-10-22"
 ```
@@ -210,7 +216,7 @@ existing bookings, and minimum booking notice.
 
 ### Book an appointment
 
-``` bash
+```bash
 curl -i -X POST \
   "http://127.0.0.1:8001/api/v1/appointments" \
   -H "Content-Type: application/json" \
@@ -227,14 +233,14 @@ available.
 
 ### Retrieve an appointment
 
-``` bash
+```bash
 curl -i \
   "http://127.0.0.1:8001/api/v1/appointments/1"
 ```
 
 ### Cancel an appointment
 
-``` bash
+```bash
 curl -i -X PATCH \
   "http://127.0.0.1:8001/api/v1/appointments/1/cancel" \
   -H "Content-Type: application/json" \
@@ -246,7 +252,7 @@ cancelled cannot be cancelled again.
 
 ### Reschedule an appointment
 
-``` bash
+```bash
 curl -i -X PATCH \
   "http://127.0.0.1:8001/api/v1/appointments/1/reschedule" \
   -H "Content-Type: application/json" \
@@ -259,7 +265,7 @@ documentation if the running schema differs.
 
 ### Retrieve patient appointment history
 
-``` bash
+```bash
 curl -i \
   "http://127.0.0.1:8001/api/v1/patients/1/appointments"
 ```
@@ -270,7 +276,7 @@ Use test patient IDs that exist in your database.
 
 The request path is intentionally straightforward:
 
-``` text
+```text
 HTTP client
     |
     v
@@ -292,14 +298,14 @@ Stored procedures
 MariaDB / MySQL
 ```
 
--   **Routes** handle HTTP paths, request parameters, and response
-    codes.
--   **Schemas** validate incoming data and define request shapes.
--   **Services** coordinate workflows and translate database failures
-    into application errors.
--   **Database helper** manages connections and stored procedure calls.
--   **Stored procedures** carry out the core data changes and
-    transactional checks.
+- **Routes** handle HTTP paths, request parameters, and response
+  codes.
+- **Schemas** validate incoming data and define request shapes.
+- **Services** coordinate workflows and translate database failures
+  into application errors.
+- **Database helper** manages connections and stored procedure calls.
+- **Stored procedures** carry out the core data changes and
+  transactional checks.
 
 ### Why stored procedures?
 
@@ -401,17 +407,12 @@ maintainability and in the actual needs of the project.
 This is an assessment project, not a claim of production readiness.
 Before using it with real patient data:
 
--   Put the API behind HTTPS.
--   Implement authentication and role-based authorization.
--   Keep database credentials and other secrets out of source control.
--   Give the runtime database user only the permissions it needs.
--   Avoid logging sensitive patient information.
--   Configure backups and test restoration.
--   Test transaction rollback and simultaneous booking attempts against
-    the target database.
--   Restrict operational and administrative endpoints.
-
-## License
-
-No license has been specified. Add a license file if you intend to
-publish the project for reuse.
+- Put the API behind HTTPS.
+- Implement authentication and role-based authorization.
+- Keep database credentials and other secrets out of source control.
+- Give the runtime database user only the permissions it needs.
+- Avoid logging sensitive patient information.
+- Configure backups and test restoration.
+- Test transaction rollback and simultaneous booking attempts against
+  the target database.
+- Restrict operational and administrative endpoints.
