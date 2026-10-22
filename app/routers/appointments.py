@@ -52,7 +52,7 @@ def create_appointment(payload: AppointmentCreate):
         handle_service_error(exc)
 
 
-@router.post("/appointments/{appointment_id}/cancel")
+@router.patch("/appointments/{appointment_id}/cancel")
 def cancel_existing_appointment(
     appointment_id: int = Path(gt=0),
     payload: AppointmentCancel = ...,

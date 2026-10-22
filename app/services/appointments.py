@@ -1,9 +1,13 @@
 from datetime import date, datetime, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pymysql
 
 from app.database import database_connection, execute_procedure
+
+
+NAIROBI_TZ = ZoneInfo("Africa/Nairobi")
 
 
 class AppointmentServiceError(Exception):
@@ -60,7 +64,6 @@ def _handle_database_error(exc: Exception) -> None:
 
     message = str(exc)
 
-    # MariaDB SIGNAL SQLSTATE '45000' commonly arrives as error 1644.
     if isinstance(exc, pymysql.MySQLError):
         for error_code, (status_code, description) in PROCEDURE_ERRORS.items():
             if error_code in message:
@@ -76,29 +79,37 @@ def _handle_database_error(exc: Exception) -> None:
 
 
 def _utc_naive(value: datetime) -> datetime:
-    """Convert an aware datetime to UTC for MariaDB DATETIME columns."""
+    """
+    Interpret naive datetimes as Nairobi local time, then convert to UTC.
+
+    MariaDB DATETIME columns do not store timezone information, so the
+    returned value is a naive datetime representing UTC.
+    """
 
     if value.tzinfo is None or value.utcoffset() is None:
-        raise AppointmentServiceError(
-            "Datetime values must include a timezone offset.",
-            400,
-        )
+        value = value.replace(tzinfo=NAIROBI_TZ)
 
     return value.astimezone(timezone.utc).replace(tzinfo=None)
 
 
-def _utc_iso(value: datetime | None) -> str | None:
-    """Represent a MariaDB UTC DATETIME as an ISO 8601 UTC timestamp."""
+def _local_iso(value: datetime | None) -> str | None:
+    """
+    Convert a UTC database datetime into Nairobi local time.
+
+    Database DATETIME values are assumed to represent UTC.
+    """
 
     if value is None:
         return None
 
-    if value.tzinfo is None:
+    if value.tzinfo is None or value.utcoffset() is None:
         value = value.replace(tzinfo=timezone.utc)
-    else:
-        value = value.astimezone(timezone.utc)
 
-    return value.isoformat()
+    return (
+        value.astimezone(NAIROBI_TZ)
+        .replace(tzinfo=None)
+        .isoformat(sep=" ")
+    )
 
 
 def _normalise_appointment(row: dict[str, Any]) -> dict[str, Any]:
@@ -108,10 +119,10 @@ def _normalise_appointment(row: dict[str, Any]) -> dict[str, Any]:
         "appointment_id": row.get("appointment_id", row.get("id")),
         "patient_id": row.get("patient_id"),
         "doctor_id": row.get("doctor_id"),
-        "start_at": _utc_iso(
+        "start_at": _local_iso(
             row.get("start_at_utc", row.get("start_at"))
         ),
-        "end_at": _utc_iso(
+        "end_at": _local_iso(
             row.get("end_at_utc", row.get("end_at"))
         ),
         "status": row.get("status"),
@@ -135,12 +146,16 @@ def get_doctor_availability(
 
         slots = [
             {
-                "start_at": _utc_iso(row["start_at_utc"]),
-                "end_at": _utc_iso(row["end_at_utc"]),
+                "start_at": _local_iso(
+                    row.get("start_at_utc", row.get("start_at"))
+                ),
+                "end_at": _local_iso(
+                    row.get("end_at_utc", row.get("end_at"))
+                ),
             }
             for row in rows
-            if row.get("start_at_utc") is not None
-            and row.get("end_at_utc") is not None
+            if row.get("start_at_utc", row.get("start_at")) is not None
+            and row.get("end_at_utc", row.get("end_at")) is not None
         ]
 
         return {
@@ -214,7 +229,9 @@ def cancel_appointment(
             "appointment_id": row["appointment_id"],
             "status": row["status"],
             "cancellation_reason": row["cancellation_reason"],
-            "cancelled_at": _utc_iso(row["cancelled_at_utc"]),
+            "cancelled_at": _local_iso(
+                row.get("cancelled_at_utc", row.get("cancelled_at"))
+            ),
         }
 
     except AppointmentServiceError:
@@ -312,8 +329,12 @@ def get_patient_appointments(
                 "doctor_first_name": row["doctor_first_name"],
                 "doctor_last_name": row["doctor_last_name"],
                 "cancellation_reason": row["cancellation_reason"],
-                "cancelled_at": _utc_iso(row["cancelled_at_utc"]),
-                "created_at": _utc_iso(row["created_at_utc"]),
+                "cancelled_at": _local_iso(
+                    row.get("cancelled_at_utc", row.get("cancelled_at"))
+                ),
+                "created_at": _local_iso(
+                    row.get("created_at_utc", row.get("created_at"))
+                ),
             }
             for row in rows
         ]
